@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.15-SNAPSHOT
+* Fix #2356: Add optional toggle to preserve HelmParameter case in Values.yaml
 
 ### 1.14.0 (2023-08-31)
 * Fix #1674: SpringBootGenerator utilizes the layered jar if present and use it as Docker layers
