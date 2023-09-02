@@ -28,8 +28,16 @@ public class HelmParameter {
   public Parameter getParameter() {
     return parameter;
   }
-
+  
   public String getHelmName() {
     return parameter.getName().toLowerCase();
+  }
+
+  public String getHelmName(final boolean preserveCase) {
+    if(preserveCase) {
+      return parameter.getName();
+    } else {
+      return parameter.getName().toLowerCase();
+    }
   }
 }
