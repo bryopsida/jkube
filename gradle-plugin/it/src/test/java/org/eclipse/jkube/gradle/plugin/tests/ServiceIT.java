@@ -25,7 +25,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class ServiceIT {
   @RegisterExtension
-  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
+  protected final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
   void k8sResourceTask_whenRun_generatesK8sManifestWithService() throws IOException, ParseException {

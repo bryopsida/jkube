@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -74,18 +75,18 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        final String name = getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-        final ControllerResourceConfig controllerResourceConfig = ControllerResourceConfig.builder()
-                .controllerName(name)
-                .imagePullPolicy(getImagePullPolicy(Config.PULL_POLICY))
-                .replicas(getReplicaCount(builder, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
-                .initContainers(Optional.ofNullable(getControllerResourceConfig().getInitContainers()).orElse(Collections.emptyList()))
-                .schedule(getConfig(Config.SCHEDULE))
-                .build();
-
         final List<ImageConfiguration> images = getImages();
         // Check if at least a replica set is added. If not add a default one
         if (KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS)) {
+            final String name = getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+            final ControllerResourceConfig controllerResourceConfig = ControllerResourceConfig.builder()
+              .controllerName(name)
+              .imagePullPolicy(getImagePullPolicy(Config.PULL_POLICY))
+              .replicas(getReplicaCount(builder, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+              .initContainers(Optional.ofNullable(getControllerResourceConfig().getInitContainers()).orElse(Collections.emptyList()))
+              .schedule(getConfig(Config.SCHEDULE))
+              .build();
+            final PodSpec podSpec;
             // At least one image must be present, otherwise the resulting config will be invalid
             if (KubernetesResourceUtil.checkForKind(builder, "StatefulSet")) {
                 final StatefulSetSpec spec = statefulSetHandler.get(controllerResourceConfig, images).getSpec();
@@ -100,20 +101,9 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
                             mergeStatefulSetSpec(statefulSetBuilder, spec);
                         }
                     });
-
-                    if (spec.getTemplate() != null && spec.getTemplate().getSpec() != null) {
-                        final PodSpec podSpec = spec.getTemplate().getSpec();
-                        builder.accept(new TypedVisitor<PodSpecBuilder>() {
-                            @Override
-                            public void visit(PodSpecBuilder builder) {
-                                String defaultApplicationContainerName = KubernetesResourceUtil.mergePodSpec(builder, podSpec, name, getValueFromConfig(SIDECAR, false));
-                                if(defaultApplicationContainerName != null) {
-                                    setProcessingInstruction(NEED_IMAGECHANGE_TRIGGERS, Collections.singletonList(defaultApplicationContainerName));
-                                }
-                            }
-                        });
-                    }
                 }
+                podSpec = Optional.ofNullable(spec).map(StatefulSetSpec::getTemplate).map(PodTemplateSpec::getSpec)
+                  .orElse(null);
             } else {
                 final DeploymentSpec spec = deployHandler.get(controllerResourceConfig, images).getSpec();
                 if (spec != null) {
@@ -127,20 +117,20 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
                             mergeDeploymentSpec(deploymentBuilder, spec);
                         }
                     });
-
-                    if (spec.getTemplate() != null && spec.getTemplate().getSpec() != null) {
-                        final PodSpec podSpec = spec.getTemplate().getSpec();
-                        builder.accept(new TypedVisitor<PodSpecBuilder>() {
-                            @Override
-                            public void visit(PodSpecBuilder builder) {
-                                String defaultApplicationContainerName = KubernetesResourceUtil.mergePodSpec(builder, podSpec, name, getValueFromConfig(SIDECAR, false));
-                                if(defaultApplicationContainerName != null) {
-                                    setProcessingInstruction(NEED_IMAGECHANGE_TRIGGERS, Collections.singletonList(defaultApplicationContainerName));
-                                }
-                            }
-                        });
-                    }
                 }
+                podSpec = Optional.ofNullable(spec).map(DeploymentSpec::getTemplate).map(PodTemplateSpec::getSpec)
+                  .orElse(null);
+            }
+            if (podSpec != null) {
+                builder.accept(new TypedVisitor<PodSpecBuilder>() {
+                    @Override
+                    public void visit(PodSpecBuilder builder) {
+                        String defaultApplicationContainerName = KubernetesResourceUtil.mergePodSpec(builder, podSpec, name, getValueFromConfig(SIDECAR, false));
+                        if(defaultApplicationContainerName != null) {
+                            setProcessingInstruction(NEED_IMAGECHANGE_TRIGGERS, Collections.singletonList(defaultApplicationContainerName));
+                        }
+                    }
+                });
             }
         }
     }

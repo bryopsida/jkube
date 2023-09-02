@@ -30,7 +30,7 @@ openshift {
         image {
             name = 'repository/route:latest'
             build {
-                from = 'quay.io/jkube/jkube-java-11'
+                from = 'quay.io/jkube/jkube-java'
                 ports = ['8080']
             }
         }

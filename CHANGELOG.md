@@ -20,12 +20,16 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.14-SNAPSHOT
+### 1.15-SNAPSHOT
+
+### 1.14.0 (2023-08-31)
+* Fix #1674: SpringBootGenerator utilizes the layered jar if present and use it as Docker layers
 * Fix #1713: Add HelidonHealthCheckEnricher to add Kubernetes health checks for Helidon applications
 * Fix #1714: Add HelidonGenerator to add opinionated container image for Helidon applications
 * Fix #1929: Docker Image Name parsing fix
 * Fix #1946: Initial support for Gitpod
 * Fix #1985: Update outdated methods in Spring Boot CRD Maven Quickstart
+* Fix #2091: Support for pushing Helm charts to OCI registries
 * Fix #2116: Remove user field from ImageName class
 * Fix #2219: Kind/Filename mappings include optional apiVersion configuration
 * Fix #2224: Quarkus native base image read from properties (configurable)
@@ -35,8 +39,10 @@ Usage:
 * Fix #2293: JibServiceUtil pushes separate images for additional tags specified in build configuration
 * Fix #2299: Gradle v8.x compatibility
 * Fix #2301: Add compatibility with SemVer versions
-* Fix #2302 Bump Kubernetes Client version to 6.8.0
+* Fix #2302: Bump Kubernetes Client version to 6.8.0
 * Fix #2324: Update SpringBootConfigurationHelper for Spring Boot 3.x
+* Fix #2350: Enrichers with NAME configuration override fragments with default names
+* Fix #2353: Add condition and alias to HelmDependency model
 
 ### 1.13.1 (2023-06-16)
 * Fix #2212: Bump Kubernetes Client version to 6.7.2 (fixes issues when trace-logging OpenShift builds -regression in 6.7.1-)

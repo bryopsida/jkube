@@ -22,7 +22,6 @@ import javax.validation.ConstraintViolationException;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.common.util.ValidationUtil;
 import org.eclipse.jkube.kit.config.resource.EnricherManager;
@@ -138,9 +137,7 @@ public class DefaultResourceService implements ResourceService {
   }
 
   private KubernetesListBuilder readResourceFragments(File[] resourceFiles) throws IOException {
-    return KubernetesResourceFragments.readResourceFragmentsFrom(
-        JKubeProjectUtil.createDefaultResourceName(resourceServiceConfig.getProject().getArtifactId()),
-        resourceFiles);
+    return KubernetesResourceFragments.readResourceFragmentsFrom(resourceFiles);
   }
 
   private File[] processResourceFiles(File[] resourceFiles) throws IOException {
