@@ -18,10 +18,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -122,6 +119,27 @@ class HelmServiceIT {
         helmService.generateHelmCharts(helmConfig));
     // Then
     assertThat(result).hasMessageStartingWith("Helm parameters must be declared with a valid name:");
+  }
+
+  @Test
+  void generateHelmChartsTest_withParameterCasePreserved() throws Exception {
+    // Given
+    helmConfig.setTypes(Collections.singletonList(HelmConfig.HelmType.KUBERNETES));
+    helmConfig.setPreserveParameterCase(true);
+    helmConfig.setParameters(Collections.singletonList(new ParameterBuilder().withName("testCamelCase").withValue("testValue").build()));
+    // When
+    helmService.generateHelmCharts(helmConfig);
+    // Then
+    File valuesFile = new File(helmOutputDir, "kubernetes/values.yaml");
+    assertThat(new File(helmOutputDir, "kubernetes/Chart.yaml")).exists().isNotEmpty();
+    assertThat(valuesFile).exists().isNotEmpty();
+    List<String> values = Files.readAllLines(valuesFile.toPath());
+    // Contents should be
+    // ---
+    // testCamelCase: testValue
+    assertThat(values.size()).isEqualTo(2);
+    String parameterLine = values.get(1);
+    assertThat(parameterLine).isEqualTo("testCamelCase: testValue");
   }
 
   @SuppressWarnings("unchecked")
